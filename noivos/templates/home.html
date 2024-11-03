@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<div class="max-w-7xl mx-auto mt-12 p-6 bg-white rounded-lg shadow-md">
+  <!-- Exibir mensagens de feedback -->
+  {% if messages %}
+    <div class="mb-4">
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="bg-blue-100 text-blue-700 border border-blue-300 rounded-lg p-2 mb-2">
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">
+    Crie sua Lista de Presentes
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-gradient-to-r from-purple-200 to-pink-200 p-6 rounded-md shadow-lg">
+      <form action="{% url 'home' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <label class="mt-4 block text-sm leading-6 text-gray-900">Nome do presente</label>
+        <input
+          type="text"
+          name="nome_presente"
+          required
+          aria-required="true"
+          class="block w-full rounded-md border-2 border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+
+        <div class="flex space-x-4 mt-4">
+          <div class="w-full">
+            <label class="block text-sm leading-6 text-gray-900">Foto de exemplo</label>
+            <input
+              type="file"
+              name="foto"
+              required
+              aria-required="true"
+              class="block w-full rounded-md border-2 border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div class="w-full">
+            <label class="block text-sm leading-6 text-gray-900">Preço estimado</label>
+            <input
+              type="text"
+              name="preco"
+              required
+              aria-required="true"
+              placeholder="0,00"
+              class="block w-full rounded-md border-2 border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div class="flex space-x-4 mt-4">
+          <div class="w-full">
+            <label class="block text-sm leading-6 text-gray-900">Importância</label>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              name="importancia"
+              class="block w-full py-3 text-gray-900"
+            />
+          </div>
+          <div class="w-full">
+            <input
+              type="submit"
+              value="Adicionar à lista"
+              class="rounded-md w-full mt-4 bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 transition duration-200"
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="mx-auto">
+      <canvas id="myChart" class="rounded-md shadow-md"></canvas>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6 gap-4">
+    {% for i in presentes %}
+    <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition duration-200">
+      <img
+        class="aspect-[3/2] w-full rounded-2xl object-cover"
+        src="{{ i.foto.url }}"
+        alt="Exemplo de presente"
+      />
+      <h3 class="mt-2 text-lg font-semibold leading-8 text-gray-900">
+        {{ i.nome_presente }}
+      </h3>
+      {% if i.reservado %}
+      <p class="mt-4 block text-sm leading-6 text-gray-900">
+        Reservado por {{ i.reservado_por }}
+      </p>
+      {% endif %}
+      <p class="text-base leading-7 text-gray-600">Descrição do presente...</p>
+      {% if i.importancia <= 2 %}
+      <span class="inline-flex items-center rounded-md bg-green-400/10 px-2 py-1 text-xs font-medium text-green-600 ring-1 ring-inset ring-green-400">Pouco Importante</span>
+      {% elif i.importancia < 4 %}
+      <span class="inline-flex items-center rounded-md bg-orange-400/10 px-2 py-1 text-xs font-medium text-orange-600 ring-1 ring-inset ring-orange-400">Importante</span>
+      {% else %}
+      <span class="inline-flex items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-600 ring-1 ring-inset ring-red-400">Muito Importante</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById("myChart");
+
+  new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: ["Não reservado", "Reservado"],
+      datasets: [
+        {
+          label: "Presentes",
+          data: {{ data }}, // Atualize dinamicamente com dados do backend, se disponíveis
+          borderWidth: 1,
+          backgroundColor: ["#D1D5DB", "#4F46E5"], // Cores para não reservado/reservado
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+        },
+      },
+    },
+  });
+</script>
+
+{% endblock %}
